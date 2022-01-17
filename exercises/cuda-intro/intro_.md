@@ -102,11 +102,11 @@ First, we need to load a number of modules to allow compilation.
 
 For C/C++
 ```shell
-module load gcc nvidia/cuda-10.2
+module load gcc nvidia/cuda-11.2
 ```
 Fortran also required the PGI compilers
 ```shell
-module load gcc nvidia/compilers-20.9
+module load gcc nvidia/nvhpc/21.2
 ```
 
 
@@ -121,15 +121,14 @@ for Fortran.
 ## On Cirrus
 
 You can only run on the backend nodes, so must submit the job to the
-batch system. To do this, you need to know your budget code. Typically
-this is `<budget>-$USER` - you can check by logging
-into SAFE, navigating to the relevant Cirrus login account and
-checking which budgets it can access.
+batch system. To do this, you need to know your budget code - you can
+check by logging into SAFE, navigating to the relevant Cirrus login
+account and checking which budgets it can access.
 
 Submit the job with
 
 ```
-sbatch --account <YOUR ACCOUNT> submit.sh
+sbatch --account <YOUR BUDGET CODE> submit.sh
 ```
 
 ---
@@ -193,7 +192,7 @@ int idx = threadIdx.x + (blockIdx.x * blockDim.x);
 ---
 
 Remember to also change the kernel invocation to invoke
-negate\_multiblock this time. With this version you can change
+`negate_multiblock` this time. With this version you can change
 `NUM_BLOCKS` and `THREADS_PER_BLOCK` to have different values - so
 long as they still multiply to give the array size.
 

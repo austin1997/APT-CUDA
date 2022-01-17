@@ -179,9 +179,9 @@ cd APT-CUDA/exercises/cuda-intro/</code></pre>
 <h2>Load modules</h2>
 <p>First, we need to load a number of modules to allow compilation.</p>
 <p>For C/C++</p>
-<pre class="shell"><code>module load gcc nvidia/cuda-10.2</code></pre>
+<pre class="shell"><code>module load gcc nvidia/cuda-11.2</code></pre>
 <p>Fortran also required the PGI compilers</p>
-<pre class="shell"><code>module load gcc nvidia/compilers-20.9</code></pre>
+<pre class="shell"><code>module load gcc nvidia/nvhpc/21.2</code></pre>
 </section>
 <section id="use-make" class="slide level2">
 <h2>Use make</h2>
@@ -194,9 +194,9 @@ cd APT-CUDA/exercises/cuda-intro/</code></pre>
 </section>
 <section id="on-cirrus" class="slide level2">
 <h2>On Cirrus</h2>
-<p>You can only run on the backend nodes, so must submit the job to the batch system. To do this, you need to know your budget code. Typically this is <code>&lt;budget&gt;-$USER</code> - you can check by logging into SAFE, navigating to the relevant Cirrus login account and checking which budgets it can access.</p>
+<p>You can only run on the backend nodes, so must submit the job to the batch system. To do this, you need to know your budget code - you can check by logging into SAFE, navigating to the relevant Cirrus login account and checking which budgets it can access.</p>
 <p>Submit the job with</p>
-<pre><code>sbatch --account &lt;YOUR ACCOUNT&gt; submit.sh</code></pre>
+<pre><code>sbatch --account &lt;YOUR BUDGET CODE&gt; submit.sh</code></pre>
 </section>
 <section class="slide level2">
 
@@ -248,7 +248,7 @@ reserved queue. This will be given in the class.
 </section>
 <section class="slide level2">
 
-<p>Remember to also change the kernel invocation to invoke negate_multiblock this time. With this version you can change <code>NUM_BLOCKS</code> and <code>THREADS_PER_BLOCK</code> to have different values - so long as they still multiply to give the array size.</p>
+<p>Remember to also change the kernel invocation to invoke <code>negate_multiblock</code> this time. With this version you can change <code>NUM_BLOCKS</code> and <code>THREADS_PER_BLOCK</code> to have different values - so long as they still multiply to give the array size.</p>
 </section></section>
 <section>
 <section id="fortran-1" class="title-slide slide level1">

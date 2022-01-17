@@ -171,9 +171,9 @@ M_{i,j} = \frac{M_{i-1,j} + M_{i+1,j} + M_{i,j-1} + M_{i,j+1} - E_{i,j}}{4}
 </section>
 <section id="run-on-the-batch-system" class="slide level2">
 <h2>Run on the batch system</h2>
-<p>To run, you need to know your budget code. Typically this is <code>&lt;budget&gt;-$USER</code> - you can check by logging into SAFE, navigating to the relevant Cirrus login account and checking which budgets it can access.</p>
+<p>To run, you need to know your budget code. To do this, you need to know your budget code - you can check by logging into SAFEm navigating to the relevant Cirrus login account and checking which budgets it can access.</p>
 <p>Submit the job with:</p>
-<pre><code>sbatch --account &lt;YOUR ACCOUNT&gt; submit.sh</code></pre>
+<pre><code>sbatch --account &lt;YOUR BUDGET CODE&gt; submit.sh</code></pre>
 <p>Query SLURM for your jobs:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">squeue</span> <span class="at">-u</span> <span class="va">$USER</span></span></code></pre></div>
 </section>

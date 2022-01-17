@@ -100,14 +100,14 @@ make
 
 ## Run on the batch system
 
-To run, you need to know your budget code. Typically
-this is `<budget>-$USER` - you can check by logging
-into SAFE, navigating to the relevant Cirrus login account and
-checking which budgets it can access.
+To run, you need to know your budget code. To do this, you need to
+know your budget code - you can check by logging into SAFEm navigating
+to the relevant Cirrus login account and checking which budgets it can
+access.
 
 Submit the job with:
 ```
-sbatch --account <YOUR ACCOUNT> submit.sh
+sbatch --account <YOUR BUDGET CODE> submit.sh
 ```
 
 Query SLURM for your jobs:
