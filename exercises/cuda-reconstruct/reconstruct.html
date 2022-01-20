@@ -162,11 +162,11 @@ M_{i,j} = \frac{M_{i-1,j} + M_{i+1,j} + M_{i,j-1} + M_{i,j+1} - E_{i,j}}{4}
 <p>Choose to work with either C or Fortran</p>
 <p>C:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> src_c</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load gcc nvidia/cuda-10.2</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load gcc nvidia/cuda-11.2</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div>
 <p>Fortran:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> src_fortran</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load gcc nvidia/compilers-20.9</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load gcc nvidia/nvhpc</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div>
 </section>
 <section id="run-on-the-batch-system" class="slide level2">
@@ -215,6 +215,10 @@ M_{i,j} = \frac{M_{i-1,j} + M_{i+1,j} + M_{i,j-1} + M_{i,j+1} - E_{i,j}}{4}
 <p>Now it’s time to optimise the code and improve on the GPU timing printed when you ran the code, by editing the source code.</p>
 <p>Note that a one pixel wide <em>halo</em> region of zeroes is added to each edge of the various image-data arrays; this simplifies the computation as it allows the edge pixels to be treated in the same manner as other pixels.</p>
 <p>Note: The edge array, which holds the original edge data, does not have require a halo.</p>
+</section>
+<section id="profiling" class="slide level2">
+<h2>Profiling</h2>
+<p>You can (should?) profile your code as you optimise it. There are basic submission scripts for both Nsight Systems (<code>profile-nsys.sh</code>) and Compute (<code>profile-ncomp.sh</code>) included. Once you have run these, you can transfer the files to your workstation and analyse them with the GUIs (available from NVIDIA https://developer.nvidia.com/tools-overview).</p>
 </section>
 <section id="minimizing-data-transfer" class="slide level2">
 <h2>Minimizing Data Transfer</h2>

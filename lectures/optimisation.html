@@ -350,8 +350,60 @@ output(i, j) = input(i, j)
   </section>
 
   <section>
-    <h4> Code branching </h4>
+    <h4>Grid stride loops</h4>
+    <dl>
+      <dt>Common advice is to parallelise a loop by mapping one
+	iteration to one thread</dt>
+      <dd>
+	<ul>
+	  <li>GPUs have limits on the number of threads (1024) and blocks
+	  that make up a grid</li>
 
+	  <li>There is a small cost to starting/ending a block</li>
+
+	  <li>Kernels often need to compute common values which result
+	  in redundant computation</li>
+
+	  <li>Kernels which use shared memory need to initialise this</li>
+	</ul>
+
+      </dd>
+
+      <dt>Solution: have each CUDA thread perform several
+	iterations</dt>
+	<dd>
+	  <ul>
+	    <li>But how to divide?</li>
+	    <li>Memory coalescing requires a strided loop.</li>
+	    <li>Flexible solution is to use the total number of
+	    threads in the grid.</li>
+	  </ul>
+	</dd>
+      </dl>
+  </section>
+  <section>
+      <h4>Grid stride loops</h4>
+      <pre><code class="cpp">
+__global__ void kernel1d(int N, float* data) {
+  for (int i = blockIdx.x*blockDim.x + threadIdx.x;
+       i < N;
+       i += blockDim.x * gridDim.x) {
+    // loop body
+  }
+int main() {
+  int devId;
+  cudaGetDevice(&devId);
+  int numSM;
+  cudaDeviceGetAttribute(&numSM,
+    cudaDevAttrMultiProcessorCount, devId);
+  kernel1d<<<32*numSM, 128>>>(N, dev_data);
+}
+      </code></pre>
+      <p style="font-size: 80%">Can also run kernel in serial for debugging</p>
+      </section>
+
+  <section>
+    <h4> Code branching </h4>
 
     <dl style = "font-size: 80%">
       <dt> Threads are scheduled in groups of 32 </dt>
@@ -362,8 +414,8 @@ output(i, j) = input(i, j)
       </ul>
       <dt> Branches in the code can cause serialisation </dt>
       <ul class = "inner">
-         <li> All threads execute all branches
-         <li> Throw away irrelevant results
+         <li> Warp executes all branches taken by at least one thread
+         <li> Threads that aren't in the executing branch sit idle
       </ul>
     </dl>
 
@@ -434,48 +486,116 @@ $ nvcc -Xptxas -v ...
   <section>
     <h4> Profiling CUDA code </h4>
 
+    Two options:
     <dl style = "font-size: 80%">
-      <dt> Command-line profiler <code>nvprof</code> </dt>
+      <dt>Nsight Systems</dt>
       <dd>
-      <ul class = "inner">
-	<li>Deprecated in CUDA 10, removal planned</li>
-        <li>Provides traditional text profile report</li>
-      </ul>
+	<ul class = "inner">
+	  <li><a href="https://developer.nvidia.com/nsight-systems">https://developer.nvidia.com/nsight-systems</a></li>
+	  <li>Analysis of overall application performance on both CPU
+	  and GPU</li>
+	  <li>Unnecessary synchronisation / data movement between host and
+	  device</li>
+	  <li>GUI and CLI interfaces (versions must match exactly to use
+	  remotely)</li>
+	</ul>
       </dd>
-    </dl>
-    <pre><code class = "bash">
-$ nvprof ./cudaExecutable
-    </code></pre>
 
-    <dl style = "font-size: 80%">
-      <dt> NVIDIAVisual profiler </dt>
+      <dt>Nsight Compute</dt>
       <dd>
-      <ul class = "inner">
-	<li>Deprecated in CUDA 10, removal planned</li>
-        <li> Full GUI profiler with many features</li>
-    <a target = "_blank"
-       href = "http://docs.nvidia.com/cuda/profiler-users-guide/index.html">
-               http://docs.nvidia.com/cuda/profiler-users-guide/index.html</a>
+	<ul class = "inner">
+	  <li><a href="https://developer.nvidia.com/nsight-compute">https://developer.nvidia.com/nsight-compute</a></li>
+	  <li>Detailed profiling of kernels</li>
+	  <li>Use "baseline" profile to see result of changes</li>
+	  <li>Roofline analysis vs. "speed of light"</li>
+	</ul>
+      </dd>
+
+    </dl>
+  </section>
+  <section>
+    <h4>Using Nsight Systems CLI</h4>
+    <ul>
+      <li>You can use the GUI to run and profile programs locally, if you
+      have a suitable GPU in your workstation.</li>
+
+      <li>For remote systems usually need to:
+      <ul>
+	<li>run the CLI</li>
+	<li>convert and reduce data</li>
+	<li>copy to data to your workstation</li>
+	<li>and import into the GUI</li>
       </ul>
-    </dd>
-    <dt>Nsight Compute</dt>
-    <dd>
-      <ul class = "inner">
-	<li>New in CUDA 10</li>
-	<li>Has GUI and command line versions</li>
-	<li><a
-	href="https://developer.nvidia.com/nsight-compute">https://developer.nvidia.com/nsight-compute</a></li>
-      </ul>
-    </dd>
-  </dl>
+
+      <pre><code class ="bash" data-trim>
+#SBATCH --qos=gpu
+# Further batch system directives
+module load nvidia/nvhpc
+nsys profile -o reconstruct-${SLURM_JOB_ID} ./reconstruct
+QdstrmImporter reconstruct-${SLURM_JOB_ID}.qdstrm
+    </code></pre>
+    </li>
+
+    <li>LOTS of options to control exactly what data is collected: see
+    documentation <a
+    href="https://docs.nvidia.com/nsight-systems/UserGuide/index.html">https://docs.nvidia.com/nsight-systems/UserGuide/index.html</a></li>
+    </ul>
+  </section>
+  <section>
+    <h4>Using Nsight Systems - GUI</h4>
+    <p style="font-size" 80%">Install from the NVIDIA website, and
+    open the <code>.qdrep</code> file.</p>
+
+     <img class = "plain" src = "nsys-recon1.png" alt = "Screenshot of
+    Nsight Systems profile of the reconstruct exercise" />
   </section>
 
   <section>
-  <dl style = "font-size: 80%">
+    <h4>Using Nsight Compute - CLI</h4>
+    <ul>
+      <li>Very similar to Nsight Systems in workflow, but no
+      conversion step</li>
+      <li>
+      <pre><code class ="bash" data-trim>
+#SBATCH --qos=gpu
+# Further batch system directives
+module load nvidia/nvhpc
+ncu -o reconstruct-${SLURM_JOB_ID} reconstruct
+      </code></pre>
+      </li>
+      <li>Will run with a modest set of metrics, OK for a first
+    look.</li>
+    <li>Often better to focus on a single kernel at a time and record
+    more data.</li>
+    <li>The GUI has various "sections" for particular analyses which
+    can be enabled or use preset "section sets", e.g.
+    <pre><code class ="bash" data-trim>
+ncu -o reconstruct-${SLURM_JOB_ID} \
+    --kernel-regex 'inverseEdgeDetect' \
+    --launch-skip 1 \
+    --lauch-count 10 \
+    --set detailed \
+    reconstruct
+    </code></pre></li>
+    </ul>
+  </section>
+
+  <section>
+    <h4>Using Nsight Compute - GUI</h4>
+    <p style="font-size:80%">Install from the NVIDIA website, and open the
+    <code>.ncu-rep</code> files you copy from Cirrus.</p>
+
+    <img src="ncu-SOL.png" alt="Screenshot of Nsight Compute
+    Speed-of-light summary" />
+  </section>
+    <section>
+    <h4>Profiling a large application</h4>
+    <dl style = "font-size: 80%">
     <dt>Reduce profiling to a region</dt>
     <dd>
       <ul>
 	<li>Disable profiling from application start.</li>
+	<li><code class="cpp">#include &lt;cuda_profiler_api.h&gt;</code></li>
 	<li>Insert <code>cudaProfilerStart()</code> before region of
 	interest</li>
 	<li>Insert <code>cudaProfilerStop()</code> after region of
@@ -486,14 +606,17 @@ $ nvprof ./cudaExecutable
     <dt>Annotate code to make analysis simpler</dt>
     <dd>
       <ul>
-	<li><a href="https://docs.nvidia.com/cuda/profiler-users-guide/index.html#nvtx">NVIDIA Tools Extension</a></li>
+	<li><a
+    href="https://docs.nvidia.com/cuda/profiler-users-guide/index.html#nvtx">NVIDIA
+	Tools Extension</a></li>
+	<li><code class="cpp">#include &lt;nvToolsExt.h&gt;</code></li>
 	<li>Name threads, streams, devices, etc</li>
 	<li>Mark instantaneous event: <code>nvtxMark("Custom message");</code>
 	<li>Mark ranges:</li>
 	<pre><code class="cpp">
 void ComputeNextTimeStep() {
   nvtxRangePush("Do timestep");
-  compute_kernel &lt&lt&lt ... &gt&gt&gt(args);
+  compute_kernel &lt;&lt;&lt; ... &gt;&gt;&gt;(args);
   cudaDeviceSynchronize();
   nvtxRangePop();
 }
