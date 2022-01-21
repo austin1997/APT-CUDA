@@ -88,13 +88,13 @@ Choose to work with either C or Fortran
 C:
 ```sh
 cd src_c
-module load gcc nvidia/cuda-10.2
+module load gcc nvidia/cuda-11.2
 make
 ```
 Fortran:
 ```sh
 cd src_fortran
-module load gcc nvidia/compilers-20.9
+module load gcc nvidia/nvhpc
 make
 ```
 
@@ -169,6 +169,16 @@ pixels.
 
 Note: The edge array, which holds the original edge data, does not
 have require a halo.
+
+
+## Profiling
+
+You can (should?) profile your code as you optimise it. There are
+basic submission scripts for both Nsight Systems (`profile-nsys.sh`)
+and Compute (`profile-ncomp.sh`) included. Once you have run these,
+you can transfer the files to your workstation and analyse them with
+the GUIs (available from NVIDIA
+https://developer.nvidia.com/tools-overview).
 
 
 ## Minimizing Data Transfer 
