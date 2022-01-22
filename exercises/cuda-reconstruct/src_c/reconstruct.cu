@@ -79,13 +79,13 @@ int main(int argc, char *argv[])
   }
 
   /* CUDA decomposition */
-  const dim3 threadsPerBlock(256, 1, 1);
+  const dim3 threadsPerBlock(16, 16, 1);
   if (N % threadsPerBlock.x != 0)
   {
     printf("Error: threadsPerBlock must exactly divide N\n");
     exit(1);
   }
-  const dim3 blocksPerGrid(N / threadsPerBlock.x, 1, 1);
+  const dim3 blocksPerGrid(N / threadsPerBlock.x, N / threadsPerBlock.y, 1);
 
   printf("Blocks: %d %d %d\n",
          blocksPerGrid.x, blocksPerGrid.y, blocksPerGrid.z);
