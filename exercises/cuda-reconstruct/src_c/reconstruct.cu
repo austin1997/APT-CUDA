@@ -110,13 +110,12 @@ int main(int argc, char *argv[])
 
     cudaDeviceSynchronize();
 
-    /* copy the output data from device to host */
-    cudaMemcpy(output, d_output, memSize, cudaMemcpyDeviceToHost);
-
-    /* copy this same data from host to input buffer on device */
-    /*  ready for the next iteration */
-    cudaMemcpy(d_input, output, memSize, cudaMemcpyHostToDevice);
+    float* tmp = d_input;
+    d_input = d_output;
+    d_output = tmp;
   }
+  d_output = d_input;
+  cudaMemcpy(output, d_output, memSize, cudaMemcpyDeviceToHost);
 
   end_time_inc_data = get_current_time();
 
