@@ -28,11 +28,11 @@ __global__ void inverseEdgeDetect(float d_output[N+2][N+2], const float d_input[
    * remember to add 1 to account for halo    
    */
 
-  imageRow = blockIdx.x*blockDim.x + threadIdx.x + 1;
+  imageCol = blockIdx.x*blockDim.x + threadIdx.x + 1;
   /*
    * loop over all columns of the image
    */
-    for (imageCol = 1; imageCol <= N; imageCol++) {
+    for (imageRow = 1; imageRow <= N; imageRow++) {
 
 
       /* perform stencil operation */
