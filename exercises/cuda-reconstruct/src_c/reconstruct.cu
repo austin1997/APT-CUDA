@@ -23,15 +23,14 @@ float edge[N][N];
 float img[N][N];
 
 /* input and output arrays  (with halos) to be used in the main calculation */
-float input[N+2][N+2];
-float output[N+2][N+2];
+float input[N + 2][N + 2];
+float output[N + 2][N + 2];
 
 /* an extra output array to be used for validation of the result */
-float validate_output[N+2][N+2];
+float validate_output[N + 2][N + 2];
 
-
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   int x, y;
   int i;
   int errors;
@@ -41,7 +40,7 @@ int main(int argc, char *argv[]) {
 
   float *d_input, *d_output, *d_edge;
 
-  size_t memSize = (N+2) * (N+2) * sizeof(float);
+  size_t memSize = (N + 2) * (N + 2) * sizeof(float);
 
   /* Print device details */
   int deviceNum;
@@ -62,31 +61,36 @@ int main(int argc, char *argv[]) {
   datread(filename, (void *)edge, N, N);
 
   /* zero buffer so that halo is zeroed */
-  for (y = 0; y < N+2; y++) {
-    for (x = 0; x < N+2; x++) {
+  for (y = 0; y < N + 2; y++)
+  {
+    for (x = 0; x < N + 2; x++)
+    {
       input[y][x] = 0.0;
     }
   }
 
   /* copy input to buffer with halo */
-  for (y = 0; y < N; y++) {
-    for (x = 0; x < N; x++) {
-      input[y+1][x+1] = edge[y][x];
+  for (y = 0; y < N; y++)
+  {
+    for (x = 0; x < N; x++)
+    {
+      input[y + 1][x + 1] = edge[y][x];
     }
   }
-  
+
   /* CUDA decomposition */
   const dim3 threadsPerBlock(256, 1, 1);
-  if ( N % threadsPerBlock.x != 0 ){
+  if (N % threadsPerBlock.x != 0)
+  {
     printf("Error: threadsPerBlock must exactly divide N\n");
     exit(1);
   }
   const dim3 blocksPerGrid(N / threadsPerBlock.x, 1, 1);
 
   printf("Blocks: %d %d %d\n",
-	 blocksPerGrid.x, blocksPerGrid.y, blocksPerGrid.z);
+         blocksPerGrid.x, blocksPerGrid.y, blocksPerGrid.z);
   printf("Threads per block: %d %d %d\n",
-	 threadsPerBlock.x, threadsPerBlock.y, threadsPerBlock.z);
+         threadsPerBlock.x, threadsPerBlock.y, threadsPerBlock.z);
 
   /*
    * copy to all the GPU arrays. d_output doesn't need to have this data but
@@ -98,23 +102,21 @@ int main(int argc, char *argv[]) {
   cudaMemcpy(d_edge, input, memSize, cudaMemcpyHostToDevice);
 
   /* run on GPU */
-  for (i = 0; i < ITERATIONS; i++) {
+  for (i = 0; i < ITERATIONS; i++)
+  {
 
     /* run the kernel */
-    inverseEdgeDetect<<< blocksPerGrid, threadsPerBlock >>>((float (*)[N+2]) d_output, (float (*)[N+2]) d_input, (float (*)[N+2]) d_edge);
- 
-    cudaDeviceSynchronize();
+    inverseEdgeDetect<<<blocksPerGrid, threadsPerBlock>>>((float(*)[N + 2]) d_output, (float(*)[N + 2]) d_input, (float(*)[N + 2]) d_edge);
 
+    cudaDeviceSynchronize();
 
     /* copy the output data from device to host */
     cudaMemcpy(output, d_output, memSize, cudaMemcpyDeviceToHost);
 
     /* copy this same data from host to input buffer on device */
-    /*  ready for the next iteration */ 
-    cudaMemcpy( d_input, output, memSize, cudaMemcpyHostToDevice);
-
+    /*  ready for the next iteration */
+    cudaMemcpy(d_input, output, memSize, cudaMemcpyHostToDevice);
   }
-
 
   end_time_inc_data = get_current_time();
 
@@ -124,23 +126,27 @@ int main(int argc, char *argv[]) {
    * run on host for comparison
    */
 
-
   cpu_start_time = get_current_time();
-  for (i = 0; i < ITERATIONS; i++) {
+  for (i = 0; i < ITERATIONS; i++)
+  {
 
     /* perform stencil operation */
-    for (y = 0; y < N; y++) {
-      for (x = 0; x < N; x++) {
-	validate_output[y+1][x+1] = (input[y+1][x] + input[y+1][x+2] +
-				     input[y][x+1] + input[y+2][x+1] \
-				     - edge[y][x]) * 0.25;
+    for (y = 0; y < N; y++)
+    {
+      for (x = 0; x < N; x++)
+      {
+        validate_output[y + 1][x + 1] = (input[y + 1][x] + input[y + 1][x + 2] +
+                                         input[y][x + 1] + input[y + 2][x + 1] - edge[y][x]) *
+                                        0.25;
       }
     }
-    
+
     /* copy output back to input buffer */
-    for (y = 0; y < N; y++) {
-      for (x = 0; x < N; x++) {
-	input[y+1][x+1] = validate_output[y+1][x+1];
+    for (y = 0; y < N; y++)
+    {
+      for (x = 0; x < N; x++)
+      {
+        input[y + 1][x + 1] = validate_output[y + 1][x + 1];
       }
     }
   }
@@ -151,10 +157,13 @@ int main(int argc, char *argv[]) {
 
   /* check that GPU result matches host result */
   errors = 0;
-  for (y = 0; y < N; y++) {
-    for (x = 0; x < N; x++) {
-      float diff = fabs(output[y+1][x+1] - validate_output[y+1][x+1]);
-      if (diff >= MAX_DIFF) {
+  for (y = 0; y < N; y++)
+  {
+    for (x = 0; x < N; x++)
+    {
+      float diff = fabs(output[y + 1][x + 1] - validate_output[y + 1][x + 1]);
+      if (diff >= MAX_DIFF)
+      {
         errors++;
         //printf("Error at %d,%d (CPU=%f, GPU=%f)\n", x, y,	\
 	//     validate_output[y+1][x+1],				\
@@ -163,15 +172,17 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (errors == 0) 
+  if (errors == 0)
     printf("\n\n ***TEST PASSED SUCCESSFULLY*** \n\n\n");
   else
     printf("\n\n ***ERROR: TEST FAILED*** \n\n\n");
 
   /* copy result to output buffer */
-  for (y = 0; y < N; y++) {
-    for (x = 0; x < N; x++) {
-      img[y][x] = output[y+1][x+1];
+  for (y = 0; y < N; y++)
+  {
+    for (x = 0; x < N; x++)
+    {
+      img[y][x] = output[y + 1][x + 1];
     }
   }
 
@@ -183,11 +194,10 @@ int main(int argc, char *argv[]) {
   cudaFree(d_output);
   cudaFree(d_edge);
 
-  printf("GPU Time (Including Data Transfer): %fs\n", \
-	 end_time_inc_data - start_time_inc_data);
-  printf("CPU Time                          : %fs\n", \
-	 cpu_end_time - cpu_start_time);
+  printf("GPU Time (Including Data Transfer): %fs\n",
+         end_time_inc_data - start_time_inc_data);
+  printf("CPU Time                          : %fs\n",
+         cpu_end_time - cpu_start_time);
 
   return 0;
 }
-
