@@ -294,8 +294,57 @@ __global__ void reverseElements(int * myArray) {
     </ul>
     </ul>
 
-  </section>
+    </section>
     
+    <section>
+    <h4>Atomic access to memory</h4>
+    <ul>
+      <li>Many algorithms require updates of shared state,
+      e.g. counting zeros in an array (incorrectly!):</li>
+      <pre><code class="cpp">
+__global__ void count_zeros(int N, int const* data, int*total) {
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (data[i] == 0) {
+    *total += 1;
+  }
+}
+      </code></pre></li>
+      <li>This code needs to read, modify, and write back the data
+      stored at <code>*total</code>.</li>
+      <li>Dealing with this (using the techniques mentioned so far)
+      can be complex.</li>
+    </ul>
+    </section>
+
+    <section>
+    <h4>Atomic access to memory</h4>
+    <ul>
+
+      <li>The hardware provides facilities to read, update, and write
+      back a memory location atomically - i.e. without any other
+      threads interferring
+      <pre><code class="cpp">
+__global__ void count_zeros(int N, int const* data, int*total) {
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (data[i] == 0) {
+    atomicAdd(total, 1);
+  }
+}
+      </code></pre>
+      </li>
+      <li>Works for built in types with some simple operations - see
+      <a
+      href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions">https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions</a>
+      for the details.</li>
+
+      <li>But this is slow if other threads are also accessing the
+      same address - consider using block shared memory to compute an
+      intermediate value that is applied to the global result via a
+      single atomic.</li>
+
+    </ul>
+    </section>
+
     <section>
     <h4>Unified Memory</h4>
     
@@ -305,9 +354,9 @@ __global__ void reverseElements(int * myArray) {
        <li>The GPU has a separate memory space from the host CPU</li>
        <li>Since CUDA 6 and Kepler (compute capability 3.0) this aspect can be largely hidden from
        the programmer with automatic data movement</li>
-       <li><b>However</b> performance is usually a lot worse than doing it yourself</li>
+       <li><b>However</b> performance is usually worse than doing it yourself</li>
        <li>Things get better with CUDA 8 and Pascal (compute
-       capability 6.0)</li>
+       capability 6.0) and are now a reasonable starting point</li>
      </ul>
      </section>
      
