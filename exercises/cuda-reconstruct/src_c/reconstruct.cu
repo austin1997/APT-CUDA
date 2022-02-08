@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
   }
 
   /* CUDA decomposition */
-  const dim3 threadsPerBlock(16, 16, 1);
+  const dim3 threadsPerBlock(32, 32, 1);
   if (N % threadsPerBlock.x != 0)
   {
     printf("Error: threadsPerBlock must exactly divide N\n");
